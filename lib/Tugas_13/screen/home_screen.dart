@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:io'; // Required for File operations
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:warung_app1/Tugas_13/database/db_helper.dart';
 import 'package:warung_app1/Tugas_13/model/product.dart';
-import '../Database/db_helper.dart';
-import 'dart:io';
+import 'package:warung_app1/Tugas_13/screen/detail.dart';
 
 class HomeScreen extends StatefulWidget {
+  static const String id = "/cart";
   const HomeScreen({super.key});
 
   @override
@@ -12,103 +15,447 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Product> products = [];
   final DbHelper dbHelper = DbHelper();
+  final TextEditingController searchController = TextEditingController();
+
+  List<Product> products = [];
+  List<Product> filteredProducts = [];
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    loadProducts();
+    // Listen for changes in the search input
+    searchController.addListener(() {
+      searchProducts(searchController.text);
+    });
   }
 
-  void loadData() async {
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> loadProducts() async {
     final data = await dbHelper.getAllProducts();
     setState(() {
       products = data;
+      // Filter immediately after loading, if there's a search query
+      searchProducts(searchController.text);
     });
+  }
+
+  void searchProducts(String query) {
+    final results =
+        products.where((product) {
+          final nameMatch = product.name.toLowerCase().contains(
+            query.toLowerCase(),
+          );
+          final brandMatch = product.brand.toLowerCase().contains(
+            query.toLowerCase(),
+          ); // Search by brand too
+          final priceMatch = product.price.toString().contains(
+            query,
+          ); // Price as string contains query
+          return nameMatch || brandMatch || priceMatch;
+        }).toList();
+
+    setState(() {
+      filteredProducts = results;
+    });
+  }
+
+  // Helper function to get stock status color
+  Color getStockColor(int stock) {
+    if (stock <= 10) {
+      return Colors.red.shade700;
+    } else if (stock <= 50) {
+      return Colors.orange.shade700;
+    } else {
+      return Colors.green.shade700;
+    }
+  }
+
+  // Helper function to get stock status background color
+  Color getStockBackgroundColor(int stock) {
+    if (stock <= 10) {
+      return Colors.red.shade100;
+    } else if (stock <= 50) {
+      return Colors.orange.shade100;
+    } else {
+      return Colors.green.shade100;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Toko HP')),
+      appBar: AppBar(
+        title: const Text(
+          'MobileStore', // More generic e-commerce name
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.blueAccent, // A more vibrant AppBar color
+        elevation: 0, // Remove shadow for a flat design
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // Drawer icon color
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.shopping_cart_outlined,
+            ), // Example action button
+            onPressed: () {
+              Navigator.pushNamed(context, '/cart');
+            },
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.zero, // Remove default padding
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Toko HP',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blueAccent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'MobileStore',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Your One-Stop Shop for Mobiles',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
               ),
             ),
             ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
+              leading: const Icon(
+                Icons.home_outlined,
+                color: Colors.blueAccent,
+              ),
+              title: const Text(
+                'Home',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () => Navigator.pushReplacementNamed(context, '/home'),
             ),
             ListTile(
-              leading: Icon(Icons.dashboard),
-              title: Text('Dashboard'),
+              leading: const Icon(Icons.dashboard_outlined, color: Colors.grey),
+              title: const Text(
+                'Dashboard',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap:
                   () => Navigator.pushReplacementNamed(context, '/dashboard'),
             ),
             ListTile(
-              leading: Icon(Icons.list),
-              title: Text('Laporan'),
+              leading: const Icon(
+                Icons.description_outlined,
+                color: Colors.grey,
+              ),
+              title: const Text(
+                'Laporan',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () => Navigator.pushReplacementNamed(context, '/laporan'),
             ),
+            const Divider(
+              height: 20,
+              thickness: 1,
+              indent: 16,
+              endIndent: 16,
+            ), // Add a divider for better separation
           ],
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(8),
-        child: GridView.builder(
-          itemCount: products.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 3 / 4,
+      body: Column(
+        children: [
+          // 🔍 Search Bar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for phones, brands, or prices...',
+                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
+                suffixIcon:
+                    searchController.text.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            searchController.clear();
+                            searchProducts(''); // Clear search results
+                            FocusScope.of(
+                              context,
+                            ).unfocus(); // Dismiss keyboard
+                          },
+                        )
+                        : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    30,
+                  ), // More rounded corners
+                  borderSide: BorderSide.none, // No border line
+                ),
+                filled: true,
+                fillColor: Colors.grey[100], // Light grey background
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 20,
+                ),
+              ),
+            ),
           ),
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child:
-                        product.image != null
-                            ? Image.file(
-                              File(product.image!),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            )
-                            : Icon(Icons.image_not_supported, size: 80),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          product.name,
-                          style: TextStyle(fontWeight: FontWeight.bold),
+          // Conditional Display: Empty State vs. Product Grid
+          Expanded(
+            child:
+                filteredProducts.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.phonelink_off_outlined,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            searchController.text.isEmpty
+                                ? 'No products available yet.'
+                                : 'No results found for "${searchController.text}".',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            searchController.text.isEmpty
+                                ? 'Stay tuned for new arrivals!'
+                                : 'Try adjusting your search or check back later!',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          if (searchController.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 20.0),
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  searchController.clear();
+                                  searchProducts('');
+                                },
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Show All Products'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blueAccent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 25,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    )
+                    : RefreshIndicator(
+                      onRefresh: loadProducts, // Enable pull-to-refresh
+                      color: Colors.blueAccent,
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
                         ),
-                        Text('Rp${product.price}'),
-                        Text('Stok: ${product.stock}'),
-                      ],
+                        itemCount: filteredProducts.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16, // Increased spacing
+                              mainAxisSpacing: 16, // Increased spacing
+                              childAspectRatio:
+                                  0.7, // Adjusted for better card proportion
+                            ),
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => DetailScreen(product: product),
+                                ),
+                              ).then(
+                                (_) =>
+                                    loadProducts(), // Reload products if returning from detail
+                              );
+                            },
+                            child: Card(
+                              elevation: 5, // More prominent shadow for cards
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  15,
+                                ), // Rounded card corners
+                              ),
+                              clipBehavior:
+                                  Clip.antiAlias, // Ensures content respects card shape
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Product Image
+                                  Expanded(
+                                    flex: 3, // Image takes up more space
+                                    child: Hero(
+                                      tag: 'image_${product.id}',
+                                      child:
+                                          product.image != null &&
+                                                  File(
+                                                    product.image!,
+                                                  ).existsSync()
+                                              ? Image.file(
+                                                File(product.image!),
+                                                fit:
+                                                    BoxFit
+                                                        .cover, // Ensures image fills the space
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) => Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .broken_image_outlined,
+                                                        size: 40,
+                                                        color: Colors.grey[300],
+                                                      ),
+                                                    ),
+                                              )
+                                              : Center(
+                                                child: Icon(
+                                                  Icons.camera_alt_outlined,
+                                                  size: 40,
+                                                  color: Colors.grey[300],
+                                                ),
+                                              ),
+                                    ),
+                                  ),
+                                  // Product Details (Text)
+                                  Expanded(
+                                    flex: 2, // Text content takes less space
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        10.0,
+                                        8.0,
+                                        10.0,
+                                        4.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines:
+                                                2, // Limit to 2 lines for long names
+                                            overflow:
+                                                TextOverflow
+                                                    .ellipsis, // Add ellipsis if name is too long
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            product.brand,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600],
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                NumberFormat.currency(
+                                                  locale:
+                                                      'id_ID', // For Indonesia format (Rp, dot separator)
+                                                  symbol: 'Rp',
+                                                  decimalDigits:
+                                                      0, // No decimal digits
+                                                ).format(product.price),
+                                                style: TextStyle(
+                                                  color: Colors.green[700],
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      getStockBackgroundColor(
+                                                        product.stock,
+                                                      ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                ),
+                                                child: Text(
+                                                  'Stock: ${product.stock}',
+                                                  style: TextStyle(
+                                                    color: getStockColor(
+                                                      product.stock,
+                                                    ),
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+          ),
+        ],
       ),
     );
   }

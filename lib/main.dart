@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:warung_app1/Tugas_13/cart/cart.dart';
+import 'package:warung_app1/Tugas_13/model/cart_state.dart';
 import 'package:warung_app1/Tugas_13/screen/auth/login.dart';
 import 'package:warung_app1/Tugas_13/screen/auth/regist.dart';
 import 'package:warung_app1/Tugas_13/screen/dashboard.dart';
@@ -6,7 +9,15 @@ import 'package:warung_app1/Tugas_13/screen/home_screen.dart';
 import 'package:warung_app1/Tugas_13/screen/laporan.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CartState()),
+        // Anda bisa menambahkan provider lain di sini jika ada
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -24,10 +35,14 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/dashboard': (context) => DashboardScreen(),
         '/laporan': (context) => LaporanScreen(),
+        '/cart': (context) => CartScreen(),
       },
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder()},
+        ),
       ),
       // home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );

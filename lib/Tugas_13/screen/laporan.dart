@@ -38,7 +38,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
 
   // Helper function to get color for stock level background
   Color getStockBackgroundColor(int stock) {
-    if (stock <= 10) {
+    if (stock <= 5) {
       return Colors.red.shade50; // Lighter shade for background
     } else if (stock <= 50) {
       return Colors.orange.shade50;
@@ -49,7 +49,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
 
   // Helper function to get color for stock level text
   Color getStockTextColor(int stock) {
-    if (stock <= 10) {
+    if (stock <= 5) {
       return Colors.red.shade700; // Darker shade for text
     } else if (stock <= 50) {
       return Colors.orange.shade700;

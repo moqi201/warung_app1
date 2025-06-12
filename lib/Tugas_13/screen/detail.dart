@@ -48,14 +48,14 @@ class DetailScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.blueAccent),
-            onPressed: () {
-              // Tambahkan fungsi share jika dibutuhkan
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.share_outlined, color: Colors.blueAccent),
+        //     onPressed: () {
+        //       // Tambahkan fungsi share jika dibutuhkan
+        //     },
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -251,29 +251,29 @@ class DetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            InkWell(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Added to Favorites!')),
-                );
-              },
-              customBorder: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                  color: Colors.white,
-                ),
-                child: const Icon(
-                  Icons.favorite_border,
-                  color: Colors.redAccent,
-                  size: 28,
-                ),
-              ),
-            ),
+            // InkWell(
+            //   onTap: () {
+            //     ScaffoldMessenger.of(context).showSnackBar(
+            //       const SnackBar(content: Text('Added to Favorites!')),
+            //     );
+            //   },
+            //   customBorder: RoundedRectangleBorder(
+            //     borderRadius: BorderRadius.circular(12),
+            //   ),
+            //   child: Container(
+            //     padding: const EdgeInsets.all(12),
+            //     decoration: BoxDecoration(
+            //       borderRadius: BorderRadius.circular(12),
+            //       border: Border.all(color: Colors.grey.shade300),
+            //       color: Colors.white,
+            //     ),
+            //     child: const Icon(
+            //       Icons.favorite_border,
+            //       color: Colors.redAccent,
+            //       size: 28,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

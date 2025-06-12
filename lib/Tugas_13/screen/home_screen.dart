@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Helper function to get stock status color
   Color getStockColor(int stock) {
-    if (stock <= 10) {
+    if (stock <= 5) {
       return Colors.red.shade700;
     } else if (stock <= 50) {
       return Colors.orange.shade700;
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Helper function to get stock status background color
   Color getStockBackgroundColor(int stock) {
-    if (stock <= 10) {
+    if (stock <= 5) {
       return Colors.red.shade100;
     } else if (stock <= 50) {
       return Colors.orange.shade100;

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warung_app1/Tugas_13/Database/db_helper.dart';
 import 'package:warung_app1/Tugas_13/model/product.dart';
 import 'package:warung_app1/Tugas_13/model/transaction.dart';
@@ -83,6 +84,15 @@ class _LaporanScreenState extends State<LaporanScreen> {
         }
       }
     }
+    Future<void> logout(BuildContext context) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // Hapus status login
+      await prefs.clear(); // atau prefs.remove('isLoggedIn');
+
+      // Arahkan ke login page dan hapus semua halaman sebelumnya
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -142,6 +152,47 @@ class _LaporanScreenState extends State<LaporanScreen> {
               onTap: () => Navigator.pop(context), // Already on reports screen
             ),
             const Divider(),
+            ListTile(
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.redAccent,
+              ), // Ikon logout
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Konfirmasi Logout'),
+                        content: const Text('Apakah Anda yakin ingin logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Batal'),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              // Logout logic (contoh dengan SharedPreferences)
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.clear(); // Hapus semua data login
+
+                              // Kembali ke halaman login, hapus semua route sebelumnya
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/Login',
+                                (route) => false,
+                              );
+                            },
+                            child: const Text('Logout'),
+                          ),
+                        ],
+                      ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -216,12 +267,12 @@ class _LaporanScreenState extends State<LaporanScreen> {
                           color: Colors.grey,
                         ), // Warna divider
                         _buildSummaryRow(
-                          'Total Current Stock',
+                          'Total  Stock',
                           totalCurrentStock.toString(),
                           Icons.inventory_2_outlined,
                         ),
                         _buildSummaryRow(
-                          'Total Current Stock Value',
+                          'Total harga',
                           NumberFormat.currency(
                             locale: 'id_ID',
                             symbol: 'Rp',
@@ -229,25 +280,25 @@ class _LaporanScreenState extends State<LaporanScreen> {
                           ).format(totalCurrentStockValue),
                           Icons.paid_outlined,
                         ),
-                        const Divider(
-                          height: 20,
-                          thickness: 1,
-                          color: Colors.grey,
-                        ), // Separator for sales data
-                        _buildSummaryRow(
-                          'Total Products Sold',
-                          totalProductsSold.toString(),
-                          Icons.shopping_cart_outlined,
-                        ),
-                        _buildSummaryRow(
-                          'Total Revenue',
-                          NumberFormat.currency(
-                            locale: 'id_ID',
-                            symbol: 'Rp',
-                            decimalDigits: 0,
-                          ).format(totalRevenue),
-                          Icons.money_outlined,
-                        ),
+                        // const Divider(
+                        //   height: 20,
+                        //   thickness: 1,
+                        //   color: Colors.grey,
+                        // ), // Separator for sales data
+                        // _buildSummaryRow(
+                        //   'Total Products Sold',
+                        //   totalProductsSold.toString(),
+                        //   Icons.shopping_cart_outlined,
+                        // ),
+                        // _buildSummaryRow(
+                        //   'Total Revenue',
+                        //   NumberFormat.currency(
+                        //     locale: 'id_ID',
+                        //     symbol: 'Rp',
+                        //     decimalDigits: 0,
+                        //   ).format(totalRevenue),
+                        //   Icons.money_outlined,
+                        // ),
                       ],
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warung_app1/Tugas_13/database/db_helper.dart';
 import 'package:warung_app1/Tugas_13/model/product.dart';
 
@@ -309,6 +310,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     refreshProducts();
   }
 
+  Future<void> logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Hapus status login
+    await prefs.clear(); // atau prefs.remove('isLoggedIn');
+
+    // Arahkan ke login page dan hapus semua halaman sebelumnya
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -359,10 +370,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.receipt_long_outlined), // Changed icon
-              title: const Text('Laporam'), // More descriptive
+              title: const Text('Laporan'), // More descriptive
               onTap: () => Navigator.pushReplacementNamed(context, '/laporan'),
             ),
             const Divider(),
+            ListTile(
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.redAccent,
+              ), // Ikon logout
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Konfirmasi Logout'),
+                        content: const Text('Apakah Anda yakin ingin logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Batal'),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              // Logout logic (contoh dengan SharedPreferences)
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.clear(); // Hapus semua data login
+
+                              // Kembali ke halaman login, hapus semua route sebelumnya
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/Login',
+                                (route) => false,
+                              );
+                            },
+                            child: const Text('Logout'),
+                          ),
+                        ],
+                      ),
+                );
+              },
+            ),
           ],
         ),
       ),

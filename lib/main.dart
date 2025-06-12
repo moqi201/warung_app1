@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => DashboardScreen(),
         '/laporan': (context) => LaporanScreen(),
         '/cart': (context) => CartScreen(),
+        '/Login': (context) => LoginScreen(),
       },
       title: 'Flutter Demo',
       theme: ThemeData(

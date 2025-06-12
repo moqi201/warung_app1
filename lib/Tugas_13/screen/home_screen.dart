@@ -2,6 +2,7 @@ import 'dart:io'; // Required for File operations
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warung_app1/Tugas_13/database/db_helper.dart';
 import 'package:warung_app1/Tugas_13/model/product.dart';
 import 'package:warung_app1/Tugas_13/screen/detail.dart';
@@ -88,6 +89,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Hapus status login
+    await prefs.clear(); // atau prefs.remove('isLoggedIn');
+
+    // Arahkan ke login page dan hapus semua halaman sebelumnya
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,16 +112,16 @@ class _HomeScreenState extends State<HomeScreen> {
         iconTheme: const IconThemeData(
           color: Colors.white,
         ), // Drawer icon color
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.shopping_cart_outlined,
-            ), // Example action button
-            onPressed: () {
-              Navigator.pushNamed(context, '/cart');
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(
+        //       Icons.shopping_cart_outlined,
+        //     ), // Example action button
+        //     onPressed: () {
+        //       Navigator.pushNamed(context, '/cart');
+        //     },
+        //   ),
+        // ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -150,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => Navigator.pushReplacementNamed(context, '/home'),
             ),
             ListTile(
-              leading: const Icon(Icons.dashboard_outlined, color: Colors.grey),
+              leading: const Icon(Icons.dashboard_outlined),
               title: const Text(
                 'Dashboard',
                 style: TextStyle(fontWeight: FontWeight.w500),
@@ -159,63 +170,96 @@ class _HomeScreenState extends State<HomeScreen> {
                   () => Navigator.pushReplacementNamed(context, '/dashboard'),
             ),
             ListTile(
-              leading: const Icon(
-                Icons.description_outlined,
-                color: Colors.grey,
-              ),
+              leading: const Icon(Icons.receipt_long_outlined), // Changed icon
               title: const Text(
                 'Laporan',
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
               onTap: () => Navigator.pushReplacementNamed(context, '/laporan'),
             ),
-            const Divider(
-              height: 20,
-              thickness: 1,
-              indent: 16,
-              endIndent: 16,
+            const Divider(height: 20, thickness: 1, indent: 16, endIndent: 16),
+            ListTile(
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.redAccent,
+              ), // Ikon logout
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Konfirmasi Logout'),
+                        content: const Text('Apakah Anda yakin ingin logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Batal'),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              // Logout logic (contoh dengan SharedPreferences)
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.clear(); // Hapus semua data login
+
+                              // Kembali ke halaman login, hapus semua route sebelumnya
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/Login',
+                                (route) => false,
+                              );
+                            },
+                            child: const Text('Logout'),
+                          ),
+                        ],
+                      ),
+                );
+              },
             ), // Add a divider for better separation
           ],
         ),
       ),
       body: Column(
         children: [
-          // 🔍 Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search for phones, brands, or prices...',
-                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
-                suffixIcon:
-                    searchController.text.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey),
-                          onPressed: () {
-                            searchController.clear();
-                            searchProducts(''); // Clear search results
-                            FocusScope.of(
-                              context,
-                            ).unfocus(); // Dismiss keyboard
-                          },
-                        )
-                        : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    30,
-                  ), // More rounded corners
-                  borderSide: BorderSide.none, // No border line
-                ),
-                filled: true,
-                fillColor: Colors.grey[100], // Light grey background
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 20,
-                ),
-              ),
-            ),
-          ),
+          // // 🔍 Search Bar
+          // Padding(
+          //   padding: const EdgeInsets.all(16.0),
+          //   child: TextField(
+          //     controller: searchController,
+          //     decoration: InputDecoration(
+          //       hintText: 'Search for phones, brands, or prices...',
+          //       prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
+          //       suffixIcon:
+          //           searchController.text.isNotEmpty
+          //               ? IconButton(
+          //                 icon: const Icon(Icons.clear, color: Colors.grey),
+          //                 onPressed: () {
+          //                   searchController.clear();
+          //                   searchProducts(''); // Clear search results
+          //                   FocusScope.of(
+          //                     context,
+          //                   ).unfocus(); // Dismiss keyboard
+          //                 },
+          //               )
+          //               : null,
+          //       border: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(
+          //           30,
+          //         ), // More rounded corners
+          //         borderSide: BorderSide.none, // No border line
+          //       ),
+          //       filled: true,
+          //       fillColor: Colors.grey[100], // Light grey background
+          //       contentPadding: const EdgeInsets.symmetric(
+          //         vertical: 15,
+          //         horizontal: 20,
+          //       ),
+          //     ),
+          //   ),
+          // ),
           // Conditional Display: Empty State vs. Product Grid
           Expanded(
             child:
